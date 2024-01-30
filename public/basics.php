@@ -515,8 +515,25 @@ $b = ['a' => '1', 'b' => '2', 'c' => '3'];
 var_dump($a == $b); //This will return true because the values are the same
 var_dump($a === $b); //This will return false because the types are not the same
 
+//*Operator Precedence & Associativity: the order in which the operators are evaluated
+//@link https://www.php.net/manual/en/language.operators.precedence.php
+
+$x = 5 + 3 * 5; //This will return 20 because the multiplication is evaluated first
+
+$y = (5 + 3) * 5; //This will return 40 because the parenthesis are evaluated first
+
+$a = true;
+$b = false;
+$c = true;
+
+var_dump($a && $b || $c); //First is evaluated $a && $b, then $c
+
 //*Execution Operators (``)
+//@link https://www.php.net/manual/en/language.operators.execution.php
 
 //*Type Operators (instanceof)
+//@link https://www.php.net/manual/en/language.operators.type.php
+
 
 //*Nullsafe Operator PHP8 (->?)
+//@link https://wiki.php.net/rfc/nullsafe_operator
