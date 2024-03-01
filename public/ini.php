@@ -22,9 +22,16 @@ var_dump(ini_get('memory_limit'));
 $string = '0';
 
 for ($i = 0; $i < 1000000; $i++) {
-    $string .= $string;
+    //$string .= $string;
 }
 
 var_dump($string);
 
 //*This will shown a fatal error because the memory limit is exceeded
+
+//Show the upload temp directory
+var_dump(ini_get('upload_tmp_dir'));
+
+//Get current timezone from php.ini
+var_dump(ini_get('date.timezone'));
+
