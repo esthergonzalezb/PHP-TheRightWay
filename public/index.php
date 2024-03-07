@@ -1,16 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+declare(strict_types=1);
 
-<body>
-    <h1>
-        <?= 'Hello World'; ?>
-    </h1>
-</body>
+//Root directory: "C:\Users\luis_\Documents\GitHub\PHP-TheRightWay\"
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
 
-</html>
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transactions_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+
+//Your Code
+require APP_PATH . 'app.php';
+
+$files = getTransactionsFiles(FILES_PATH);
+
+print_r($files);
+
+

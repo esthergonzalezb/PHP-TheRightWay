@@ -2,12 +2,47 @@
 
 declare(strict_types=1);
 
+/**
+ * Get the list of transactions files
+ */
+function getTransactionsFiles(string $path, array $extensions = ["csv"]): array
+{
+
+    $files = [];
+
+    var_dump($path);
+
+    foreach (scandir($path) as $file) {
+
+        if ($file === "." || $file === "..") continue;
+
+        if (!is_dir($path . $file)) {
+            $files[] = $file;
+            continue;
+        }
+
+        return [...$files, ...getTransactionsFiles(realpath($path . $file))];
+    }
+
+    return $files;
+}
+
+/**
+ * Read files from a directory
+ * 
+ * @param string $path The path to the directory
+ * @param array $extensions The file extensions to read
+ * 
+ * @return array The list of files
+ * 
+ */
 function readFiles(string $path, array $extensions = ["csv"]): array
 {
-    $files = scandir($path);
+    $files = [];
 
-    foreach ($files as $dir => $file) {
-        $path = realpath($dir . DIRECTORY_SEPARATOR . $file);
+    foreach (scandir($path) as $file) {
+
+        $path = realpath($file);
 
         if (!is_dir($path)) {
         }
