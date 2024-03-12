@@ -3,74 +3,131 @@
 declare(strict_types=1);
 
 /**
- * Get the list of transactions files
+ * Get recursively all files with the given extensions from the given path
+ * 
+ * @param string $path The path to search for files
+ * @param array $extensions The extensions to search for
+ * 
+ * @return array The files found in the given path
  */
 function getTransactionsFiles(string $path, array $extensions = ["csv"]): array
 {
-
     $files = [];
-
-    var_dump($path);
 
     foreach (scandir($path) as $file) {
 
         if ($file === "." || $file === "..") continue;
 
-        if (!is_dir($path . $file)) {
-            $files[] = $file;
+        $filePath = $path . DIRECTORY_SEPARATOR . $file;
+
+        if (!is_dir($filePath)) {
+
+            if (in_array(pathinfo($file, PATHINFO_EXTENSION), $extensions)) $files[] = $filePath;
+
             continue;
         }
 
-        return [...$files, ...getTransactionsFiles(realpath($path . $file))];
+        $files = [...$files, ...getTransactionsFiles($filePath)];
     }
 
     return $files;
 }
 
 /**
- * Read files from a directory
+ * Get the transactions from the given files
  * 
- * @param string $path The path to the directory
- * @param array $extensions The file extensions to read
+ * Filter the files that do not exist and merge the transactions from the given files
  * 
- * @return array The list of files
+ * ... is the spread operator, it unpack the elements of an array
  * 
+ * @param array $files The files to get the transactions from
+ * @param callable $transactionHandler The function to handle the transactions
+ * 
+ * @return array The transactions from the given files
  */
-function readFiles(string $path, array $extensions = ["csv"]): array
+function getTransactions(array $files, ?callable $transactionHandler = null): array
 {
-    $files = [];
-
-    foreach (scandir($path) as $file) {
-
-        $path = realpath($file);
-
-        if (!is_dir($path)) {
-        }
-    }
-
-    $files = array_filter($files, fn ($file) => in_array(pathinfo($file, PATHINFO_EXTENSION), $extensions));
-    $files = array_map(fn ($file) => $path . DIRECTORY_SEPARATOR . $file, $files);
-    return $files;
+    return array_merge(...array_map('arrayFromCsv', array_filter($files, 'file_exists')));
 }
 
+/**
+ * Transform a CSV file into an array
+ * 
+ * @param string $file The path to the CSV file
+ * 
+ * @return array The CSV file as an array
+ */
+function arrayFromCsv(string $file): array
+{
+    $lines = explode("\n", file_get_contents($file));
 
-/*
+    // Remove the first line (header)
+    array_shift($lines);
 
-    function getDirContents($dir, &$results = array()) {
-    $files = scandir($dir);
-
-    foreach ($files as $key => $value) {
-        $path = realpath($dir . DIRECTORY_SEPARATOR . $value);
-        if (!is_dir($path)) {
-            $results[] = $path;
-        } else if ($value != "." && $value != "..") {
-            getDirContents($path, $results);
-            $results[] = $path;
-        }
-    }
-
-    return $results; 
+    return array_map(fn ($line) => extractTransaction(str_getcsv($line)), $lines);
 }
 
-var_dump(getDirContents('/xampp/htdocs/WORK'));
-*/
+/**
+ * Reformat the transaction data to eliminate the $ sign and commas
+ * 
+ * @param array $transaction The transaction data
+ * 
+ * @return array The reformatted transaction data
+ */
+function extractTransaction(array $transaction): array
+{
+    //Deconstruct the array
+    [$date, $check, $description, $amount] = $transaction;
+
+    return [
+        'date' => $date,
+        'checkNumber' => $check,
+        'description' => $description,
+        'amount' => (float) filter_var($amount, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION)
+    ];
+}
+
+/**
+ * Calculate the total amount of the given transactions
+ * 
+ * @param array $transactions The transactions to calculate the total amount
+ * 
+ * @return array The total amount of the given transactions
+ */
+function calculateTotals(array $transactions): array
+{
+    $totals = ['netTotal' => 0, 'totalIncome' => 0, 'totalExpense' => 0];
+
+    foreach ($transactions as $transaction) {
+
+        $totals['netTotal'] += $transaction['amount'];
+
+        ($transaction['amount'] > 0) ? $totals['totalIncome'] += $transaction['amount'] : $totals['totalExpense'] += $transaction['amount'];
+    }
+
+    return $totals;
+}
+
+/**
+ * Otra forma de hacerlo:
+ * 
+ * @param string $fileName The path to the CSV file
+ * 
+ * @return array The CSV file as an array
+ */
+function getTransactions_2(string $fileName): array
+{
+    if (!file_exists($fileName)) {
+        trigger_error("File not found: $fileName", E_USER_ERROR);
+    }
+
+    $file = fopen($fileName, "r");
+
+    $transactions = [];
+
+    while (($transaction = fgetcsv($file)) !== false) {
+        $transactions[] = $transaction;
+    }
+
+    return $transactions;
+}
