@@ -8,7 +8,5 @@ function debuggear(mixed $data, bool $stopExecution = false)
     var_dump($data);
     echo '</pre>';
 
-    if ($stopExecution) {
-        exit;
-    }
+    if ($stopExecution)  exit;
 }
